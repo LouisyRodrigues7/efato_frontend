@@ -2,7 +2,7 @@
  * Chat.js - Gerenciamento do chat e mensagens
  */
 
-import { sendQuestion, formatAnalysisResponse, APIError } from './api.js';
+import { sendQuestion, formatAnalysisResponse } from './api.js';
 import { saveChatMessages, loadChatMessages, addChatToHistory } from './storage.js';
 import { renderMarkdown } from './markdown.js';
 
@@ -42,9 +42,7 @@ export async function sendMessage(userMessage, appState) {
 
     const title = userMessage.substring(0, 50);
 
-    // FIX: evita chamada duplicada
-    const updatedHistory = addChatToHistory(appState.currentChatId, title);
-    appState.chatHistory = updatedHistory;
+    addChatToHistory(appState.currentChatId, title);
 
     scrollToBottom();
 
@@ -55,7 +53,7 @@ export async function sendMessage(userMessage, appState) {
 }
 
 /**
- * Adiciona uma mensagem ao chat
+ * Adiciona mensagem
  */
 function addMessageToChat(content, role, appState, metadata = {}) {
   const message = {
@@ -73,70 +71,65 @@ function addMessageToChat(content, role, appState, metadata = {}) {
 }
 
 /**
- * Renderiza mensagem simples
+ * Render simples
  */
 function renderMessage(content, role) {
   const chatMessages = document.querySelector('.chat-messages');
   if (!chatMessages) return;
 
-  const messageEl = createMessageElement(content, role);
-  chatMessages.appendChild(messageEl);
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.textContent = content;
+
+  chatMessages.appendChild(div);
 }
 
 /**
- * Renderiza resposta estruturada
+ * Render resposta IA
  */
-function renderAnalysisResponse(formatted, analysis) {
+function renderAnalysisResponse(formatted) {
   const chatMessages = document.querySelector('.chat-messages');
   if (!chatMessages) return;
 
-  const messageEl = document.createElement('div');
-  messageEl.className = 'message assistant animate-slide-in-up';
+  const el = document.createElement('div');
+  el.className = 'message assistant';
 
-  const contentEl = document.createElement('div');
-  contentEl.className = 'message-content';
+  el.innerHTML = `
+    <div class="markdown-content">
+      ${renderMarkdown(formatted.summary)}
+    </div>
+  `;
 
-  const summaryEl = document.createElement('div');
-  summaryEl.className = 'markdown-content';
-  summaryEl.innerHTML = renderMarkdown(formatted.summary);
-  contentEl.appendChild(summaryEl);
-
-  if (formatted.analysis) {
-    const analysisEl = document.createElement('div');
-    analysisEl.className = 'markdown-content';
-    analysisEl.style.marginTop = 'var(--spacing-md)';
-    analysisEl.innerHTML = renderMarkdown(formatted.analysis);
-    contentEl.appendChild(analysisEl);
-  }
-
-  if (formatted.evidence?.length) {
-    contentEl.appendChild(createEvidenceSection(formatted.evidence));
-  }
-
-  if (formatted.confidence > 0) {
-    contentEl.appendChild(createReliabilityCard(formatted.confidence));
-  }
-
-  if (formatted.sources?.length) {
-    contentEl.appendChild(createSourcesSection(formatted.sources));
-  }
-
-  if (formatted.divergences?.length) {
-    contentEl.appendChild(createDivergencesSection(formatted.divergences));
-  }
-
-  messageEl.appendChild(contentEl);
-  messageEl.appendChild(createMessageActions());
-
-  chatMessages.appendChild(messageEl);
+  chatMessages.appendChild(el);
 }
 
+/**
+ * LIMPAR CHAT (EXPORT NECESSÁRIO PARA SIDEBAR)
+ */
 export function clearChat(appState) {
   const chatMessages = document.querySelector('.chat-messages');
   if (chatMessages) chatMessages.innerHTML = '';
+
   appState.messages = [];
 }
+
 /**
- * restante do arquivo permanece igual
- * (sem alterações estruturais)
+ * FUNÇÃO NECESSÁRIA PARA SIDEBAR (ANTES ESTAVA FALTANDO)
  */
+export function loadPreviousChat(chatId, appState) {
+  const messages = loadChatMessages(chatId);
+
+  appState.messages = messages;
+
+  const chatMessages = document.querySelector('.chat-messages');
+  if (!chatMessages) return;
+
+  chatMessages.innerHTML = '';
+
+  messages.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = `message ${msg.role}`;
+    div.textContent = msg.content;
+    chatMessages.appendChild(div);
+  });
+}
