@@ -14,7 +14,7 @@ export function initializeSidebar(appState) {
 }
 
 /**
- * Renderiza o histórico de chats na sidebar
+ * Renderiza histórico
  */
 function renderChatHistory(appState) {
   const chatHistory = document.querySelector('.chat-history');
@@ -38,6 +38,10 @@ function renderChatHistory(appState) {
   history.forEach(chat => {
     const item = document.createElement('button');
     item.className = 'chat-history-item';
+
+    // FIX: necessário para updateSidebarActive funcionar
+    item.dataset.chatId = chat.id;
+
     if (chat.id === appState.currentChatId) {
       item.classList.add('active');
     }
@@ -52,10 +56,12 @@ function renderChatHistory(appState) {
     deleteBtn.className = 'chat-history-item-delete';
     deleteBtn.textContent = '✕';
     deleteBtn.title = 'Deletar conversa';
+
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       handleDeleteChat(chat.id, appState);
     });
+
     item.appendChild(deleteBtn);
 
     item.addEventListener('click', () => {
@@ -67,17 +73,18 @@ function renderChatHistory(appState) {
 }
 
 /**
- * Configura os eventos da sidebar
+ * Eventos sidebar
  */
 function setupSidebarEvents(appState) {
   const newChatBtn = document.querySelector('.new-chat-btn');
+
   if (newChatBtn) {
     newChatBtn.addEventListener('click', () => handleNewChat(appState));
   }
 }
 
 /**
- * Manipula o clique em um chat anterior
+ * Load chat anterior
  */
 function handleLoadChat(chatId, appState) {
   appState.currentChatId = chatId;
@@ -87,12 +94,14 @@ function handleLoadChat(chatId, appState) {
 }
 
 /**
- * Manipula a criação de um novo chat
+ * Novo chat
  */
 function handleNewChat(appState) {
-  appState.currentChatId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  appState.currentChatId =
+    `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   appState.messages = [];
-  
+
   const chatMessages = document.querySelector('.chat-messages');
   if (chatMessages) {
     chatMessages.innerHTML = '';
@@ -103,18 +112,16 @@ function handleNewChat(appState) {
   closeSidebar(appState);
 
   const inputField = document.querySelector('.input-field');
-  if (inputField) {
-    inputField.focus();
-  }
+  if (inputField) inputField.focus();
 }
 
 /**
- * Manipula a exclusão de um chat
+ * Delete chat
  */
 function handleDeleteChat(chatId, appState) {
   if (confirm('Tem certeza que deseja deletar esta conversa?')) {
     removeChatFromHistory(chatId);
-    
+
     if (chatId === appState.currentChatId) {
       handleNewChat(appState);
     } else {
@@ -124,12 +131,14 @@ function handleDeleteChat(chatId, appState) {
 }
 
 /**
- * Atualiza o item ativo na sidebar
+ * FIX PRINCIPAL
  */
 function updateSidebarActive(chatId) {
   const items = document.querySelectorAll('.chat-history-item');
+
   items.forEach(item => {
     item.classList.remove('active');
+
     if (item.dataset.chatId === chatId) {
       item.classList.add('active');
     }
@@ -137,7 +146,7 @@ function updateSidebarActive(chatId) {
 }
 
 /**
- * Alterna a sidebar (mobile)
+ * Sidebar mobile
  */
 export function toggleSidebar(appState) {
   const sidebar = document.querySelector('.sidebar');
@@ -155,43 +164,33 @@ export function toggleSidebar(appState) {
 }
 
 /**
- * Abre a sidebar
+ * open sidebar
  */
 function openSidebar(appState) {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.querySelector('.sidebar-overlay');
 
-  if (sidebar) {
-    sidebar.classList.add('active');
-  }
-
-  if (overlay) {
-    overlay.classList.add('active');
-  }
+  if (sidebar) sidebar.classList.add('active');
+  if (overlay) overlay.classList.add('active');
 
   document.body.style.overflow = 'hidden';
 }
 
 /**
- * Fecha a sidebar
+ * close sidebar
  */
 export function closeSidebar(appState) {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.querySelector('.sidebar-overlay');
 
-  if (sidebar) {
-    sidebar.classList.remove('active');
-  }
-
-  if (overlay) {
-    overlay.classList.remove('active');
-  }
+  if (sidebar) sidebar.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
 
   document.body.style.overflow = '';
 }
 
 /**
- * Atualiza a sidebar (chamado quando o histórico muda)
+ * update external
  */
 export function updateSidebar(appState) {
   renderChatHistory(appState);
