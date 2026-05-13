@@ -133,3 +133,21 @@ export function loadPreviousChat(chatId, appState) {
     chatMessages.appendChild(div);
   });
 }
+
+function showLoadingIndicator() {
+  const chatMessages = document.querySelector('.chat-messages');
+  if (!chatMessages) return;
+
+  const loader = document.createElement('div');
+  loader.className = 'message assistant loading-indicator';
+  loader.textContent = 'Analisando...';
+
+  loader.id = 'loading-indicator';
+
+  chatMessages.appendChild(loader);
+}
+
+function removeLoadingIndicator() {
+  const loader = document.getElementById('loading-indicator');
+  if (loader) loader.remove();
+}
