@@ -66,3 +66,19 @@ export function closeSidebar() {
 export function updateSidebar(appState) {
   renderChatHistory(appState);
 }
+
+export function toggleSidebar(appState) {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+
+  if (!sidebar) return;
+
+  const isActive = sidebar.classList.contains('active');
+
+  if (isActive) {
+    closeSidebar(appState);
+  } else {
+    sidebar.classList.add('active');
+    overlay?.classList.add('active');
+  }
+}
