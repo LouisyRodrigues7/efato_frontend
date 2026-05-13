@@ -13,11 +13,7 @@ export class APIClient {
     this.timeout = DEFAULT_TIMEOUT;
   }
 
-  /**
-   * Define automaticamente o endpoint correto
-   */
   getDefaultEndpoint() {
-    // Ambiente local
     if (
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1'
@@ -25,13 +21,9 @@ export class APIClient {
       return 'http://localhost:3000/api/analyze';
     }
 
-    // Produção (Render)
     return 'https://newbackteste.onrender.com/api/analyze';
   }
 
-  /**
-   * Envia uma pergunta para análise
-   */
   async analyzeQuestion(question) {
     if (!question || typeof question !== 'string') {
       throw new Error('Pergunta inválida');
@@ -50,9 +42,6 @@ export class APIClient {
     });
   }
 
-  /**
-   * Faz uma requisição HTTP
-   */
   async request(url, options = {}) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -73,29 +62,32 @@ export class APIClient {
         );
       }
 
-      const data = await response.json();
+      // FIX CRÍTICO: evita crash quando backend retorna HTML (deploy)
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new APIError(
+          'Resposta não é JSON válida',
+          'PARSE_ERROR',
+          text
+        );
+      }
+
       return this.validateResponse(data);
 
     } catch (error) {
       clearTimeout(timeoutId);
 
-      if (error instanceof APIError) {
-        throw error;
-      }
+      if (error instanceof APIError) throw error;
 
       if (error.name === 'AbortError') {
         throw new APIError(
           'Requisição expirou',
           'TIMEOUT',
           'A requisição demorou muito'
-        );
-      }
-
-      if (error instanceof SyntaxError) {
-        throw new APIError(
-          'Resposta inválida',
-          'PARSE_ERROR',
-          error.message
         );
       }
 
@@ -107,9 +99,6 @@ export class APIClient {
     }
   }
 
-  /**
-   * Valida a resposta da API
-   */
   validateResponse(data) {
     if (!data || typeof data !== 'object') {
       throw new APIError(
@@ -144,7 +133,7 @@ export class APIClient {
 }
 
 /**
- * Classe para erros de API
+ * Classe de erro
  */
 export class APIError extends Error {
   constructor(message, code = 'UNKNOWN_ERROR', details = '') {
@@ -153,20 +142,13 @@ export class APIError extends Error {
     this.code = code;
     this.details = details;
   }
-
-  toString() {
-    return `${this.name} [${this.code}]: ${this.message}`;
-  }
 }
 
 /**
- * Instância global da API
+ * Instância global
  */
 export const apiClient = new APIClient();
 
-/**
- * Função auxiliar para enviar pergunta
- */
 export async function sendQuestion(question) {
   try {
     const response = await apiClient.analyzeQuestion(question);
@@ -177,9 +159,6 @@ export async function sendQuestion(question) {
   }
 }
 
-/**
- * Processa a resposta de análise da API
- */
 export function parseAnalysisResponse(response) {
   try {
     if (!response.question) {
@@ -192,7 +171,7 @@ export function parseAnalysisResponse(response) {
       try {
         answer = JSON.parse(answer);
       } catch (e) {
-        console.warn('Não foi possível fazer parse do campo answer:', e);
+        console.warn('Resposta JSON inválida:', e);
         answer = { text: answer };
       }
     }
@@ -205,13 +184,12 @@ export function parseAnalysisResponse(response) {
       stats: response.stats || {},
       topDocument: response.topDocument || {},
       contextPreview: response.contextPreview || [],
-      answer: answer,
+      answer,
       pipeline: response.pipeline || {},
       timestamp: new Date().toISOString()
     };
 
   } catch (error) {
-    console.error('Erro ao processar resposta:', error);
     throw new APIError(
       'Erro ao processar resposta da API',
       'PARSE_ERROR',
@@ -220,9 +198,6 @@ export function parseAnalysisResponse(response) {
   }
 }
 
-/**
- * Formata a resposta para exibição
- */
 export function formatAnalysisResponse(analysis) {
   const answer = analysis.answer || {};
 
@@ -243,9 +218,6 @@ export function formatAnalysisResponse(analysis) {
   };
 }
 
-/**
- * Extrai fontes da resposta
- */
 function extractSources(analysis) {
   const sources = [];
 
@@ -272,18 +244,13 @@ function extractSources(analysis) {
   return sources;
 }
 
-/**
- * Health check
- */
 export async function checkAPIHealth() {
   try {
     const response = await fetch(apiClient.getEndpoint(), {
       method: 'OPTIONS'
     });
-
     return response.ok;
-  } catch (error) {
-    console.warn('API não está acessível:', error);
+  } catch {
     return false;
   }
 }

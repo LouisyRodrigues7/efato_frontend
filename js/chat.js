@@ -6,18 +6,12 @@ import { sendQuestion, formatAnalysisResponse } from './api.js';
 import { saveChatMessages, loadChatMessages, addChatToHistory } from './storage.js';
 import { renderMarkdown } from './markdown.js';
 
-/**
- * Inicializa o sistema de chat
- */
 export function initializeChat(appState) {
   if (appState.currentChatId) {
     appState.messages = loadChatMessages(appState.currentChatId);
   }
 }
 
-/**
- * Envia uma mensagem
- */
 export async function sendMessage(userMessage, appState) {
   try {
     addMessageToChat(userMessage, 'user', appState);
@@ -31,7 +25,7 @@ export async function sendMessage(userMessage, appState) {
 
     const formattedResponse = formatAnalysisResponse(response);
 
-    renderAnalysisResponse(formattedResponse, response);
+    renderAnalysisResponse(formattedResponse);
 
     addMessageToChat(
       JSON.stringify(formattedResponse),
@@ -44,7 +38,7 @@ export async function sendMessage(userMessage, appState) {
 
     addChatToHistory(appState.currentChatId, title);
 
-    scrollToBottom();
+    scrollToBottomSafe();
 
   } catch (error) {
     removeLoadingIndicator();
@@ -52,9 +46,6 @@ export async function sendMessage(userMessage, appState) {
   }
 }
 
-/**
- * Adiciona mensagem
- */
 function addMessageToChat(content, role, appState, metadata = {}) {
   const message = {
     id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -70,9 +61,6 @@ function addMessageToChat(content, role, appState, metadata = {}) {
   return message;
 }
 
-/**
- * Render simples
- */
 function renderMessage(content, role) {
   const chatMessages = document.querySelector('.chat-messages');
   if (!chatMessages) return;
@@ -84,9 +72,6 @@ function renderMessage(content, role) {
   chatMessages.appendChild(div);
 }
 
-/**
- * Render resposta IA
- */
 function renderAnalysisResponse(formatted) {
   const chatMessages = document.querySelector('.chat-messages');
   if (!chatMessages) return;
@@ -103,9 +88,6 @@ function renderAnalysisResponse(formatted) {
   chatMessages.appendChild(el);
 }
 
-/**
- * LIMPAR CHAT (EXPORT NECESSÁRIO PARA SIDEBAR)
- */
 export function clearChat(appState) {
   const chatMessages = document.querySelector('.chat-messages');
   if (chatMessages) chatMessages.innerHTML = '';
@@ -113,9 +95,6 @@ export function clearChat(appState) {
   appState.messages = [];
 }
 
-/**
- * FUNÇÃO NECESSÁRIA PARA SIDEBAR (ANTES ESTAVA FALTANDO)
- */
 export function loadPreviousChat(chatId, appState) {
   const messages = loadChatMessages(chatId);
 
@@ -141,7 +120,6 @@ function showLoadingIndicator() {
   const loader = document.createElement('div');
   loader.className = 'message assistant loading-indicator';
   loader.textContent = 'Analisando...';
-
   loader.id = 'loading-indicator';
 
   chatMessages.appendChild(loader);
@@ -150,4 +128,24 @@ function showLoadingIndicator() {
 function removeLoadingIndicator() {
   const loader = document.getElementById('loading-indicator');
   if (loader) loader.remove();
+}
+
+function handleChatError(error) {
+  console.error('Erro no chat:', error);
+
+  const chatMessages = document.querySelector('.chat-messages');
+  if (!chatMessages) return;
+
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'message error';
+  errorDiv.textContent = 'Erro ao processar mensagem. Tente novamente.';
+
+  chatMessages.appendChild(errorDiv);
+}
+
+function scrollToBottomSafe() {
+  const el = document.querySelector('.chat-messages');
+  if (!el) return;
+
+  el.scrollTop = el.scrollHeight;
 }
