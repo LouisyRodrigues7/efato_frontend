@@ -8,9 +8,25 @@ const DEFAULT_TIMEOUT = 30000;
  * Classe para gerenciar requisições à API
  */
 export class APIClient {
-  constructor(endpoint = 'http://localhost:3000/api/analyze') {
-    this.endpoint = endpoint;
+  constructor(endpoint = null) {
+    this.endpoint = endpoint || this.getDefaultEndpoint();
     this.timeout = DEFAULT_TIMEOUT;
+  }
+
+  /**
+   * Define automaticamente o endpoint correto
+   */
+  getDefaultEndpoint() {
+    // Se estiver rodando localmente
+    if (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    ) {
+      return 'http://localhost:3000/api/analyze';
+    }
+
+    // Produção (Render)
+    return 'https://newbackteste.onrender.com/api/analyze';
   }
 
   /**
@@ -97,23 +113,14 @@ export class APIClient {
     return data;
   }
 
-  /**
-   * Define o timeout para requisições
-   */
   setTimeout(ms) {
     this.timeout = ms;
   }
 
-  /**
-   * Obtém o endpoint atual
-   */
   getEndpoint() {
     return this.endpoint;
   }
 
-  /**
-   * Define um novo endpoint
-   */
   setEndpoint(endpoint) {
     this.endpoint = endpoint;
   }
@@ -158,12 +165,10 @@ export async function sendQuestion(question) {
  */
 export function parseAnalysisResponse(response) {
   try {
-    // Validar campos obrigatórios
     if (!response.question) {
       throw new Error('Campo "question" ausente na resposta');
     }
 
-    // Processar o campo "answer" que vem como string JSON
     let answer = response.answer;
     if (typeof answer === 'string') {
       try {
@@ -197,7 +202,7 @@ export function parseAnalysisResponse(response) {
  */
 export function formatAnalysisResponse(analysis) {
   const answer = analysis.answer || {};
-  
+
   return {
     summary: answer.summary || answer.text || 'Sem resumo disponível',
     analysis: answer.analysis || answer.details || '',
@@ -213,12 +218,9 @@ export function formatAnalysisResponse(analysis) {
   };
 }
 
-/**
- * Extrai fontes da resposta
- */
 function extractSources(analysis) {
   const sources = [];
-  
+
   if (analysis.topDocument) {
     sources.push({
       title: analysis.topDocument.title || 'Documento Principal',
@@ -227,7 +229,7 @@ function extractSources(analysis) {
       official: analysis.topDocument.official === true
     });
   }
-  
+
   if (Array.isArray(analysis.contextPreview)) {
     analysis.contextPreview.forEach((context, index) => {
       sources.push({
@@ -238,18 +240,14 @@ function extractSources(analysis) {
       });
     });
   }
-  
+
   return sources;
 }
 
-/**
- * Verifica a conectividade com a API
- */
 export async function checkAPIHealth() {
   try {
     const response = await fetch(apiClient.getEndpoint(), {
-      method: 'OPTIONS',
-      timeout: 5000
+      method: 'OPTIONS'
     });
     return response.ok;
   } catch (error) {
@@ -258,16 +256,10 @@ export async function checkAPIHealth() {
   }
 }
 
-/**
- * Configura a URL da API
- */
 export function setAPIEndpoint(endpoint) {
   apiClient.setEndpoint(endpoint);
 }
 
-/**
- * Obtém a URL da API atual
- */
 export function getAPIEndpoint() {
   return apiClient.getEndpoint();
 }
