@@ -131,6 +131,11 @@ function renderAnalysisResponse(formatted, analysis) {
   chatMessages.appendChild(messageEl);
 }
 
+export function clearChat(appState) {
+  const chatMessages = document.querySelector('.chat-messages');
+  if (chatMessages) chatMessages.innerHTML = '';
+  appState.messages = [];
+}
 /**
  * restante do arquivo permanece igual
  * (sem alterações estruturais)

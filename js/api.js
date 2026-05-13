@@ -17,7 +17,7 @@ export class APIClient {
    * Define automaticamente o endpoint correto
    */
   getDefaultEndpoint() {
-    // Se estiver rodando localmente
+    // Ambiente local
     if (
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1'
@@ -75,6 +75,7 @@ export class APIClient {
 
       const data = await response.json();
       return this.validateResponse(data);
+
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -83,14 +84,26 @@ export class APIClient {
       }
 
       if (error.name === 'AbortError') {
-        throw new APIError('Requisição expirou', 'TIMEOUT', 'A requisição demorou muito');
+        throw new APIError(
+          'Requisição expirou',
+          'TIMEOUT',
+          'A requisição demorou muito'
+        );
       }
 
       if (error instanceof SyntaxError) {
-        throw new APIError('Resposta inválida', 'PARSE_ERROR', error.message);
+        throw new APIError(
+          'Resposta inválida',
+          'PARSE_ERROR',
+          error.message
+        );
       }
 
-      throw new APIError('Erro ao conectar com o servidor', 'NETWORK_ERROR', error.message);
+      throw new APIError(
+        'Erro ao conectar com o servidor',
+        'NETWORK_ERROR',
+        error.message
+      );
     }
   }
 
@@ -99,7 +112,11 @@ export class APIClient {
    */
   validateResponse(data) {
     if (!data || typeof data !== 'object') {
-      throw new APIError('Resposta inválida', 'INVALID_RESPONSE', 'Formato de resposta inválido');
+      throw new APIError(
+        'Resposta inválida',
+        'INVALID_RESPONSE',
+        'Formato de resposta inválido'
+      );
     }
 
     if (data.success === false) {
@@ -170,6 +187,7 @@ export function parseAnalysisResponse(response) {
     }
 
     let answer = response.answer;
+
     if (typeof answer === 'string') {
       try {
         answer = JSON.parse(answer);
@@ -191,9 +209,14 @@ export function parseAnalysisResponse(response) {
       pipeline: response.pipeline || {},
       timestamp: new Date().toISOString()
     };
+
   } catch (error) {
     console.error('Erro ao processar resposta:', error);
-    throw new APIError('Erro ao processar resposta da API', 'PARSE_ERROR', error.message);
+    throw new APIError(
+      'Erro ao processar resposta da API',
+      'PARSE_ERROR',
+      error.message
+    );
   }
 }
 
@@ -209,7 +232,9 @@ export function formatAnalysisResponse(analysis) {
     evidence: Array.isArray(answer.evidence) ? answer.evidence : [],
     confidence: answer.confidence || answer.confiabilidade || 0,
     divergences: answer.divergences || answer.divergências || [],
-    sources: Array.isArray(answer.sources) ? answer.sources : extractSources(analysis),
+    sources: Array.isArray(answer.sources)
+      ? answer.sources
+      : extractSources(analysis),
     metadata: {
       timestamp: analysis.timestamp,
       intent: analysis.intent,
@@ -218,6 +243,9 @@ export function formatAnalysisResponse(analysis) {
   };
 }
 
+/**
+ * Extrai fontes da resposta
+ */
 function extractSources(analysis) {
   const sources = [];
 
@@ -244,11 +272,15 @@ function extractSources(analysis) {
   return sources;
 }
 
+/**
+ * Health check
+ */
 export async function checkAPIHealth() {
   try {
     const response = await fetch(apiClient.getEndpoint(), {
       method: 'OPTIONS'
     });
+
     return response.ok;
   } catch (error) {
     console.warn('API não está acessível:', error);
