@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ÉFato - IA que testa o que você confia. Plataforma de verificação e análise de informações políticas.">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="color-scheme" content="light dark">
+  
+  <title>ÉFato - Verificação de Informações Políticas com IA</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/layout.css">
+  <link rel="stylesheet" href="./css/sidebar.css">
+  <link rel="stylesheet" href="./css/chat.css">
+  <link rel="stylesheet" href="./css/input.css">
+  <link rel="stylesheet" href="./css/cards.css">
+  <link rel="stylesheet" href="./css/animations.css">
+  <link rel="stylesheet" href="./css/themes.css">
+  <link rel="stylesheet" href="./css/markdown.css">
+  <link rel="stylesheet" href="./css/responsive.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' font-weight='bold' fill='%2306B6D4'>É</text></svg>">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="sidebar-logo-text">ÉFato</span>
+        </div>
+        <div class="sidebar-actions">
+          <button class="sidebar-btn theme-toggle" aria-label="Alternar tema" title="Alternar tema">🌙</button>
+        </div>
+      </div>
+
+      <button class="new-chat-btn" title="Iniciar nova conversa">
+        <span>+ Nova Conversa</span>
+      </button>
+
+      <div class="chat-history"></div>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" data-action="export-history" title="Exportar histórico">
+          <span class="sidebar-footer-btn-icon">📥</span>
+          <span class="sidebar-footer-btn-text">Exportar</span>
+        </button>
+        <button class="sidebar-footer-btn" data-action="clear-all" title="Limpar tudo">
+          <span class="sidebar-footer-btn-icon">🗑️</span>
+          <span class="sidebar-footer-btn-text">Limpar Tudo</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Overlay da Sidebar (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Botão de Toggle da Sidebar (Mobile) -->
+    <button class="sidebar-toggle" aria-label="Abrir menu" title="Abrir menu">☰</button>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Chat Container -->
+      <div class="chat-container">
+        <div class="chat-messages"></div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+          <p>⚠️ O ÉFato pode cometer erros. Verifique sempre as fontes citadas. Fontes oficiais possuem prioridade na análise.</p>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea 
+            class="input-field" 
+            placeholder="Faça uma pergunta sobre política..."
+            aria-label="Campo de entrada"
+            rows="1"
+          ></textarea>
+          <div class="input-actions">
+            <button class="btn-send" aria-label="Enviar mensagem" title="Enviar (Enter)">➤</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

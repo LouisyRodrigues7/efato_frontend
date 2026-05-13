@@ -1,0 +1,275 @@
+/* Temas */
+
+/* Tema Escuro (Padrão) */
+[data-theme="dark"],
+:root:not([data-theme]) {
+  --color-primary-dark: #0F172A;
+  --color-primary-medium: #1E3A8A;
+  --color-accent: #06B6D4;
+  --color-accent-light: #22D3EE;
+  --color-accent-lighter: #67E8F9;
+  
+  --color-bg-primary: #0F172A;
+  --color-bg-secondary: #1E293B;
+  --color-bg-tertiary: #334155;
+  
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary: #94A3B8;
+  
+  --color-border: #334155;
+  --color-border-light: #475569;
+  
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #06B6D4;
+}
+
+/* Tema Claro */
+[data-theme="light"] {
+  --color-primary-dark: #0F172A;
+  --color-primary-medium: #1E3A8A;
+  --color-accent: #0284C7;
+  --color-accent-light: #0EA5E9;
+  --color-accent-lighter: #38BDF8;
+  
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8FAFC;
+  --color-bg-tertiary: #E2E8F0;
+  
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748B;
+  
+  --color-border: #E2E8F0;
+  --color-border-light: #CBD5E1;
+  
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-info: #0284C7;
+}
+
+/* Transição de tema suave */
+html {
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+body {
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+.sidebar {
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.card {
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.input-field {
+  transition: background-color var(--transition-base), border-color var(--transition-base), color var(--transition-base);
+}
+
+.message-content {
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* Tema Escuro - Estilos Específicos */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] .app-container {
+  background-color: var(--color-bg-primary);
+}
+
+[data-theme="dark"] .sidebar {
+  background-color: var(--color-bg-secondary);
+}
+
+[data-theme="dark"] .message.user .message-content {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+[data-theme="dark"] .message.assistant .message-content {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .input-field {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .input-field:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+[data-theme="dark"] .btn-send {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+}
+
+[data-theme="dark"] .btn-send:hover:not(:disabled) {
+  background-color: var(--color-accent-light);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+[data-theme="dark"] .suggestion-btn {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .suggestion-btn:hover {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-accent);
+}
+
+/* Tema Claro - Estilos Específicos */
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="light"] .app-container {
+  background-color: var(--color-bg-primary);
+}
+
+[data-theme="light"] .sidebar {
+  background-color: var(--color-bg-secondary);
+  border-right-color: var(--color-border);
+}
+
+[data-theme="light"] .message.user .message-content {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+[data-theme="light"] .message.assistant .message-content {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+[data-theme="light"] .input-field {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .input-field:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+[data-theme="light"] .btn-send {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .btn-send:hover:not(:disabled) {
+  background-color: var(--color-accent-light);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+[data-theme="light"] .suggestion-btn {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .suggestion-btn:hover {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-accent);
+}
+
+[data-theme="light"] .card {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .card:hover {
+  border-color: var(--color-accent);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-lg);
+  border: none;
+}
+
+.theme-toggle:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-accent);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Animação de mudança de tema */
+@keyframes themeSwitch {
+  0% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 1;
+  }
+}
+
+.theme-toggle.switching {
+  animation: themeSwitch 0.4s ease-in-out;
+}
+
+/* Scrollbar Tema Escuro */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Scrollbar Tema Claro */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Selection Color por Tema */
+[data-theme="dark"] ::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+}
+
+[data-theme="light"] ::selection {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+}
