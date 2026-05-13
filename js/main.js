@@ -56,10 +56,15 @@ async function initializeApp() {
  * Configura os event listeners globais
  */
 function setupEventListeners() {
-  // Tema
+  // Tema - O listener já é configurado em theme.js, mas aqui adicionamos a animação
   const themeToggle = document.querySelector('.theme-toggle');
   if (themeToggle) {
-    themeToggle.addEventListener('click', handleThemeToggle);
+    themeToggle.addEventListener('click', () => {
+      themeToggle.classList.add('switching');
+      setTimeout(() => {
+        themeToggle.classList.remove('switching');
+      }, 400);
+    });
   }
 
   // Input
@@ -178,19 +183,7 @@ async function handleClearChat() {
   }
 }
 
-/**
- * Manipula a mudança de tema
- */
-function handleThemeToggle() {
-  const themeToggle = document.querySelector('.theme-toggle');
-  if (themeToggle) {
-    themeToggle.classList.add('switching');
-    setTimeout(() => {
-      toggleTheme();
-      themeToggle.classList.remove('switching');
-    }, 200);
-  }
-}
+
 
 /**
  * Ajusta o layout responsivo

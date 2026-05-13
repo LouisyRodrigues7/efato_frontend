@@ -39,8 +39,9 @@ export function applyTheme(theme) {
  * Alterna entre temas
  */
 export function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || THEME_DARK;
+  const currentTheme = localStorage.getItem(THEME_KEY) || document.documentElement.getAttribute('data-theme') || THEME_DARK;
   const newTheme = currentTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK;
+  console.log(`Alternando tema: ${currentTheme} -> ${newTheme}`);
   applyTheme(newTheme);
 }
 
