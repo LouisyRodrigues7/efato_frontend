@@ -1,6 +1,6 @@
 /**
  * chat.js
- * Gerenciamento simples do chat
+ * Gerenciamento do chat
  */
 
 import { sendQuestion } from "./api.js";
@@ -35,11 +35,20 @@ export async function sendMessage(userMessage, appState) {
 
     showLoading();
 
-    const response = await sendQuestion(userMessage);
+    const response =
+      await sendQuestion(userMessage);
+
+    console.log(
+      "[CHAT RESPONSE]",
+      response
+    );
 
     removeLoading();
 
-    addAssistantMessage(response, appState);
+    addAssistantMessage(
+      response,
+      appState
+    );
 
     const title =
       userMessage.substring(0, 40);
@@ -53,7 +62,10 @@ export async function sendMessage(userMessage, appState) {
 
   } catch (error) {
 
-    console.error("Erro no chat:", error);
+    console.error(
+      "Erro no chat:",
+      error
+    );
 
     removeLoading();
 
@@ -64,9 +76,13 @@ export async function sendMessage(userMessage, appState) {
 function addUserMessage(content, appState) {
 
   const message = {
+
     role: "user",
+
     content,
-    timestamp: new Date().toISOString()
+
+    timestamp:
+      new Date().toISOString()
   };
 
   appState.messages.push(message);
@@ -76,18 +92,149 @@ function addUserMessage(content, appState) {
     appState.messages
   );
 
-  renderMessage(content, "user");
+  renderMessage(
+    content,
+    "user"
+  );
 }
 
 function addAssistantMessage(response, appState) {
 
-  const content = response.summary;
+  console.log(
+    "[ASSISTANT RAW RESPONSE]",
+    response
+  );
+
+  //
+  // Compatibilidade com backend antigo e novo
+  //
+  let parsedAnswer = null;
+
+  try {
+
+    if (
+      typeof response.answer === "string"
+    ) {
+
+      parsedAnswer =
+        JSON.parse(response.answer);
+
+    } else {
+
+      parsedAnswer =
+        response.answer;
+    }
+
+  } catch (error) {
+
+    console.error(
+      "[JSON PARSE ERROR]",
+      error
+    );
+  }
+
+  //
+  // Fallbacks seguros
+  //
+  const resumo =
+    parsedAnswer?.resumo ||
+    response?.summary ||
+    response?.answer?.resumo ||
+    "Sem resposta disponível.";
+
+  const analise =
+    parsedAnswer?.analise || "";
+
+  const fontes =
+    parsedAnswer?.fontes_utilizadas || [];
+
+  const evidencias =
+    parsedAnswer?.evidencias || [];
+
+  const confiabilidade =
+    parsedAnswer?.confiabilidade || null;
+
+  //
+  // Monta HTML bonito
+  //
+  let content = `
+## Resumo
+
+${resumo}
+`;
+
+  if (analise) {
+
+    content += `
+
+## Análise
+
+${analise}
+`;
+  }
+
+  if (evidencias.length > 0) {
+
+    content += `
+
+## Evidências
+`;
+
+    evidencias
+      .slice(0, 3)
+      .forEach((item) => {
+
+        content += `
+
+• ${item.trecho}
+
+Fonte: ${item.fonte}
+`;
+      });
+  }
+
+  if (fontes.length > 0) {
+
+    content += `
+
+## Fontes utilizadas
+`;
+
+    fontes
+      .slice(0, 5)
+      .forEach((fonte) => {
+
+        content += `
+
+• <a href="${fonte.fonte}" target="_blank">
+${fonte.titulo || fonte.fonte}
+</a>
+`;
+      });
+  }
+
+  if (confiabilidade) {
+
+    content += `
+
+## Confiabilidade
+
+Nível: ${confiabilidade.nivel}
+
+${confiabilidade.motivo}
+`;
+  }
 
   const message = {
+
     role: "assistant",
+
     content,
-    analysis: response,
-    timestamp: new Date().toISOString()
+
+    analysis: parsedAnswer,
+
+    timestamp:
+      new Date().toISOString()
   };
 
   appState.messages.push(message);
@@ -97,19 +244,26 @@ function addAssistantMessage(response, appState) {
     appState.messages
   );
 
-  renderMessage(content, "assistant");
+  renderMessage(
+    content,
+    "assistant"
+  );
 }
 
 function renderMessage(content, role) {
 
   const container =
-    document.querySelector(".chat-messages");
+    document.querySelector(
+      ".chat-messages"
+    );
 
   if (!container) return;
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
-  div.className = `message ${role}`;
+  div.className =
+    `message ${role}`;
 
   if (role === "assistant") {
 
@@ -132,7 +286,9 @@ function renderMessage(content, role) {
 function renderStoredMessages(messages) {
 
   const container =
-    document.querySelector(".chat-messages");
+    document.querySelector(
+      ".chat-messages"
+    );
 
   if (!container) return;
 
@@ -150,19 +306,26 @@ function renderStoredMessages(messages) {
 function showLoading() {
 
   const container =
-    document.querySelector(".chat-messages");
+    document.querySelector(
+      ".chat-messages"
+    );
 
   if (!container) return;
 
-  const loading = document.createElement("div");
+  const loading =
+    document.createElement("div");
 
   loading.className =
     "message assistant loading";
 
-  loading.id = "chat-loading";
+  loading.id =
+    "chat-loading";
 
-  loading.textContent =
-    "Analisando informações...";
+  loading.innerHTML = `
+    <div class="markdown-content">
+      <p>Analisando informações...</p>
+    </div>
+  `;
 
   container.appendChild(loading);
 
@@ -172,7 +335,9 @@ function showLoading() {
 function removeLoading() {
 
   const loading =
-    document.getElementById("chat-loading");
+    document.getElementById(
+      "chat-loading"
+    );
 
   if (loading) {
     loading.remove();
@@ -181,14 +346,23 @@ function removeLoading() {
 
 function showError(error) {
 
+  console.error(
+    "[CHAT ERROR]",
+    error
+  );
+
   const container =
-    document.querySelector(".chat-messages");
+    document.querySelector(
+      ".chat-messages"
+    );
 
   if (!container) return;
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
-  div.className = "message error";
+  div.className =
+    "message error";
 
   let message =
     "Erro ao processar requisição.";
@@ -198,14 +372,27 @@ function showError(error) {
     message =
       "O servidor demorou muito para responder.";
 
-  } else if (error.code === "NETWORK_ERROR") {
+  } else if (
+    error.code === "NETWORK_ERROR"
+  ) {
 
     message =
       "Falha de conexão com o servidor.";
 
+  } else if (
+    error.message
+  ) {
+
+    message =
+      error.message;
   }
 
-  div.textContent = message;
+  div.innerHTML = `
+    <div class="markdown-content">
+      <strong>Erro</strong>
+      <p>${message}</p>
+    </div>
+  `;
 
   container.appendChild(div);
 
@@ -217,19 +404,25 @@ export function clearChat(appState) {
   appState.messages = [];
 
   const container =
-    document.querySelector(".chat-messages");
+    document.querySelector(
+      ".chat-messages"
+    );
 
   if (container) {
     container.innerHTML = "";
   }
 }
 
-export function loadPreviousChat(chatId, appState) {
+export function loadPreviousChat(
+  chatId,
+  appState
+) {
 
   const messages =
     loadChatMessages(chatId) || [];
 
-  appState.messages = messages;
+  appState.messages =
+    messages;
 
   renderStoredMessages(messages);
 }
@@ -237,7 +430,9 @@ export function loadPreviousChat(chatId, appState) {
 function scrollBottom() {
 
   const container =
-    document.querySelector(".chat-messages");
+    document.querySelector(
+      ".chat-messages"
+    );
 
   if (!container) return;
 
