@@ -1,151 +1,246 @@
 /**
- * Chat.js - Gerenciamento do chat e mensagens
+ * chat.js
+ * Gerenciamento simples do chat
  */
 
-import { sendQuestion, formatAnalysisResponse } from './api.js';
-import { saveChatMessages, loadChatMessages, addChatToHistory } from './storage.js';
-import { renderMarkdown } from './markdown.js';
+import { sendQuestion } from "./api.js";
+
+import {
+  saveChatMessages,
+  loadChatMessages,
+  addChatToHistory
+} from "./storage.js";
+
+import { renderMarkdown } from "./markdown.js";
 
 export function initializeChat(appState) {
-  if (appState.currentChatId) {
-    appState.messages = loadChatMessages(appState.currentChatId);
-  }
+
+  if (!appState.currentChatId) return;
+
+  appState.messages =
+    loadChatMessages(appState.currentChatId) || [];
+
+  renderStoredMessages(appState.messages);
 }
 
 export async function sendMessage(userMessage, appState) {
-  try {
-    addMessageToChat(userMessage, 'user', appState);
-    renderMessage(userMessage, 'user');
 
-    showLoadingIndicator();
+  if (!userMessage || !userMessage.trim()) {
+    return;
+  }
+
+  try {
+
+    addUserMessage(userMessage, appState);
+
+    showLoading();
 
     const response = await sendQuestion(userMessage);
 
-    removeLoadingIndicator();
+    removeLoading();
 
-    const formattedResponse = formatAnalysisResponse(response);
+    addAssistantMessage(response, appState);
 
-    renderAnalysisResponse(formattedResponse);
+    const title =
+      userMessage.substring(0, 40);
 
-    addMessageToChat(
-      JSON.stringify(formattedResponse),
-      'assistant',
-      appState,
-      { analysis: response }
+    addChatToHistory(
+      appState.currentChatId,
+      title
     );
 
-    const title = userMessage.substring(0, 50);
-
-    addChatToHistory(appState.currentChatId, title);
-
-    scrollToBottomSafe();
+    scrollBottom();
 
   } catch (error) {
-    removeLoadingIndicator();
-    handleChatError(error);
+
+    console.error("Erro no chat:", error);
+
+    removeLoading();
+
+    showError(error);
   }
 }
 
-function addMessageToChat(content, role, appState, metadata = {}) {
+function addUserMessage(content, appState) {
+
   const message = {
-    id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    role: "user",
     content,
-    role,
-    timestamp: new Date().toISOString(),
-    ...metadata
+    timestamp: new Date().toISOString()
   };
 
   appState.messages.push(message);
-  saveChatMessages(appState.currentChatId, appState.messages);
 
-  return message;
+  saveChatMessages(
+    appState.currentChatId,
+    appState.messages
+  );
+
+  renderMessage(content, "user");
+}
+
+function addAssistantMessage(response, appState) {
+
+  const content = response.summary;
+
+  const message = {
+    role: "assistant",
+    content,
+    analysis: response,
+    timestamp: new Date().toISOString()
+  };
+
+  appState.messages.push(message);
+
+  saveChatMessages(
+    appState.currentChatId,
+    appState.messages
+  );
+
+  renderMessage(content, "assistant");
 }
 
 function renderMessage(content, role) {
-  const chatMessages = document.querySelector('.chat-messages');
-  if (!chatMessages) return;
 
-  const div = document.createElement('div');
+  const container =
+    document.querySelector(".chat-messages");
+
+  if (!container) return;
+
+  const div = document.createElement("div");
+
   div.className = `message ${role}`;
-  div.textContent = content;
 
-  chatMessages.appendChild(div);
+  if (role === "assistant") {
+
+    div.innerHTML = `
+      <div class="markdown-content">
+        ${renderMarkdown(content)}
+      </div>
+    `;
+
+  } else {
+
+    div.textContent = content;
+  }
+
+  container.appendChild(div);
+
+  scrollBottom();
 }
 
-function renderAnalysisResponse(formatted) {
-  const chatMessages = document.querySelector('.chat-messages');
-  if (!chatMessages) return;
+function renderStoredMessages(messages) {
 
-  const el = document.createElement('div');
-  el.className = 'message assistant';
+  const container =
+    document.querySelector(".chat-messages");
 
-  el.innerHTML = `
-    <div class="markdown-content">
-      ${renderMarkdown(formatted.summary)}
-    </div>
-  `;
+  if (!container) return;
 
-  chatMessages.appendChild(el);
-}
+  container.innerHTML = "";
 
-export function clearChat(appState) {
-  const chatMessages = document.querySelector('.chat-messages');
-  if (chatMessages) chatMessages.innerHTML = '';
+  messages.forEach((msg) => {
 
-  appState.messages = [];
-}
-
-export function loadPreviousChat(chatId, appState) {
-  const messages = loadChatMessages(chatId);
-
-  appState.messages = messages;
-
-  const chatMessages = document.querySelector('.chat-messages');
-  if (!chatMessages) return;
-
-  chatMessages.innerHTML = '';
-
-  messages.forEach(msg => {
-    const div = document.createElement('div');
-    div.className = `message ${msg.role}`;
-    div.textContent = msg.content;
-    chatMessages.appendChild(div);
+    renderMessage(
+      msg.content,
+      msg.role
+    );
   });
 }
 
-function showLoadingIndicator() {
-  const chatMessages = document.querySelector('.chat-messages');
-  if (!chatMessages) return;
+function showLoading() {
 
-  const loader = document.createElement('div');
-  loader.className = 'message assistant loading-indicator';
-  loader.textContent = 'Analisando...';
-  loader.id = 'loading-indicator';
+  const container =
+    document.querySelector(".chat-messages");
 
-  chatMessages.appendChild(loader);
+  if (!container) return;
+
+  const loading = document.createElement("div");
+
+  loading.className =
+    "message assistant loading";
+
+  loading.id = "chat-loading";
+
+  loading.textContent =
+    "Analisando informações...";
+
+  container.appendChild(loading);
+
+  scrollBottom();
 }
 
-function removeLoadingIndicator() {
-  const loader = document.getElementById('loading-indicator');
-  if (loader) loader.remove();
+function removeLoading() {
+
+  const loading =
+    document.getElementById("chat-loading");
+
+  if (loading) {
+    loading.remove();
+  }
 }
 
-function handleChatError(error) {
-  console.error('Erro no chat:', error);
+function showError(error) {
 
-  const chatMessages = document.querySelector('.chat-messages');
-  if (!chatMessages) return;
+  const container =
+    document.querySelector(".chat-messages");
 
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'message error';
-  errorDiv.textContent = 'Erro ao processar mensagem. Tente novamente.';
+  if (!container) return;
 
-  chatMessages.appendChild(errorDiv);
+  const div = document.createElement("div");
+
+  div.className = "message error";
+
+  let message =
+    "Erro ao processar requisição.";
+
+  if (error.code === "TIMEOUT") {
+
+    message =
+      "O servidor demorou muito para responder.";
+
+  } else if (error.code === "NETWORK_ERROR") {
+
+    message =
+      "Falha de conexão com o servidor.";
+
+  }
+
+  div.textContent = message;
+
+  container.appendChild(div);
+
+  scrollBottom();
 }
 
-function scrollToBottomSafe() {
-  const el = document.querySelector('.chat-messages');
-  if (!el) return;
+export function clearChat(appState) {
 
-  el.scrollTop = el.scrollHeight;
+  appState.messages = [];
+
+  const container =
+    document.querySelector(".chat-messages");
+
+  if (container) {
+    container.innerHTML = "";
+  }
+}
+
+export function loadPreviousChat(chatId, appState) {
+
+  const messages =
+    loadChatMessages(chatId) || [];
+
+  appState.messages = messages;
+
+  renderStoredMessages(messages);
+}
+
+function scrollBottom() {
+
+  const container =
+    document.querySelector(".chat-messages");
+
+  if (!container) return;
+
+  container.scrollTop =
+    container.scrollHeight;
 }
