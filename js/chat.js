@@ -43,6 +43,16 @@ export async function sendMessage(userMessage, appState) {
       response
     );
 
+    console.log(
+      "[ANSWER TYPE]",
+      typeof response?.answer
+    );
+
+    console.log(
+      "[ANSWER VALUE]",
+      response?.answer
+    );
+
     removeLoading();
 
     addAssistantMessage(
@@ -63,7 +73,7 @@ export async function sendMessage(userMessage, appState) {
   } catch (error) {
 
     console.error(
-      "Erro no chat:",
+      "[CHAT ERROR]",
       error
     );
 
@@ -106,23 +116,58 @@ function addAssistantMessage(response, appState) {
   );
 
   //
-  // Compatibilidade com backend antigo e novo
+  // Compatibilidade total
   //
   let parsedAnswer = null;
 
   try {
 
+    //
+    // Caso:
+    // answer = string JSON
+    //
     if (
-      typeof response.answer === "string"
+      typeof response?.answer === "string"
     ) {
 
       parsedAnswer =
         JSON.parse(response.answer);
 
-    } else {
+      console.log(
+        "[PARSED FROM STRING]"
+      );
+    }
+
+    //
+    // Caso:
+    // answer = objeto
+    //
+    else if (
+      typeof response?.answer === "object"
+    ) {
 
       parsedAnswer =
         response.answer;
+
+      console.log(
+        "[PARSED FROM OBJECT]"
+      );
+    }
+
+    //
+    // Caso:
+    // backend retornou direto
+    //
+    else if (
+      response?.resumo
+    ) {
+
+      parsedAnswer =
+        response;
+
+      console.log(
+        "[PARSED FROM ROOT]"
+      );
     }
 
   } catch (error) {
@@ -131,31 +176,45 @@ function addAssistantMessage(response, appState) {
       "[JSON PARSE ERROR]",
       error
     );
+
+    console.error(
+      "[INVALID ANSWER]",
+      response?.answer
+    );
   }
 
+  console.log(
+    "[FINAL PARSED ANSWER]",
+    parsedAnswer
+  );
+
   //
-  // Fallbacks seguros
+  // FALLBACKS
   //
   const resumo =
     parsedAnswer?.resumo ||
     response?.summary ||
-    response?.answer?.resumo ||
+    response?.resumo ||
     "Sem resposta disponível.";
 
   const analise =
-    parsedAnswer?.analise || "";
+    parsedAnswer?.analise ||
+    "";
 
   const fontes =
-    parsedAnswer?.fontes_utilizadas || [];
+    parsedAnswer?.fontes_utilizadas ||
+    [];
 
   const evidencias =
-    parsedAnswer?.evidencias || [];
+    parsedAnswer?.evidencias ||
+    [];
 
   const confiabilidade =
-    parsedAnswer?.confiabilidade || null;
+    parsedAnswer?.confiabilidade ||
+    null;
 
   //
-  // Monta HTML bonito
+  // TEMPLATE
   //
   let content = `
 ## Resumo
@@ -173,7 +232,10 @@ ${analise}
 `;
   }
 
-  if (evidencias.length > 0) {
+  if (
+    evidencias &&
+    evidencias.length > 0
+  ) {
 
     content += `
 
@@ -186,14 +248,17 @@ ${analise}
 
         content += `
 
-• ${item.trecho}
+• ${item?.trecho || ""}
 
-Fonte: ${item.fonte}
+Fonte: ${item?.fonte || ""}
 `;
       });
   }
 
-  if (fontes.length > 0) {
+  if (
+    fontes &&
+    fontes.length > 0
+  ) {
 
     content += `
 
@@ -206,8 +271,8 @@ Fonte: ${item.fonte}
 
         content += `
 
-• <a href="${fonte.fonte}" target="_blank">
-${fonte.titulo || fonte.fonte}
+• <a href="${fonte?.fonte || "#"}" target="_blank" rel="noopener noreferrer">
+${fonte?.titulo || fonte?.fonte || "Fonte"}
 </a>
 `;
       });
@@ -219,9 +284,9 @@ ${fonte.titulo || fonte.fonte}
 
 ## Confiabilidade
 
-Nível: ${confiabilidade.nivel}
+Nível: ${confiabilidade?.nivel || "não informado"}
 
-${confiabilidade.motivo}
+${confiabilidade?.motivo || ""}
 `;
   }
 
@@ -367,20 +432,20 @@ function showError(error) {
   let message =
     "Erro ao processar requisição.";
 
-  if (error.code === "TIMEOUT") {
+  if (error?.code === "TIMEOUT") {
 
     message =
       "O servidor demorou muito para responder.";
 
   } else if (
-    error.code === "NETWORK_ERROR"
+    error?.code === "NETWORK_ERROR"
   ) {
 
     message =
       "Falha de conexão com o servidor.";
 
   } else if (
-    error.message
+    error?.message
   ) {
 
     message =

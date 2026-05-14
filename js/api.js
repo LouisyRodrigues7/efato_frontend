@@ -3,12 +3,19 @@
  * Integração com backend Render
  */
 
-const API_URL = "https://newbackteste.onrender.com/api/analyze";
+const API_URL =
+  "https://newbackteste.onrender.com/api/analyze";
 
 const DEFAULT_TIMEOUT = 120000;
 
 export class APIError extends Error {
-  constructor(message, code = "UNKNOWN", details = "") {
+
+  constructor(
+    message,
+    code = "UNKNOWN",
+    details = ""
+  ) {
+
     super(message);
 
     this.name = "APIError";
@@ -20,58 +27,89 @@ export class APIError extends Error {
 class APIClient {
 
   constructor() {
-    this.timeout = DEFAULT_TIMEOUT;
+
+    this.timeout =
+      DEFAULT_TIMEOUT;
   }
 
   async analyzeQuestion(question) {
 
-    if (!question || typeof question !== "string") {
+    if (
+      !question ||
+      typeof question !== "string"
+    ) {
+
       throw new APIError(
         "Pergunta inválida",
         "INVALID_QUESTION"
       );
     }
 
-    return this.request(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        question: question.trim()
-      })
-    });
+    return this.request(
+      API_URL,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body: JSON.stringify({
+          question:
+            question.trim()
+        })
+      }
+    );
   }
 
-  async request(url, options = {}) {
+  async request(
+    url,
+    options = {}
+  ) {
 
-    const controller = new AbortController();
+    const controller =
+      new AbortController();
 
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, this.timeout);
+    const timeoutId =
+      setTimeout(() => {
+
+        controller.abort();
+
+      }, this.timeout);
 
     try {
 
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-      });
+      const response =
+        await fetch(url, {
+
+          ...options,
+
+          signal:
+            controller.signal
+        });
 
       clearTimeout(timeoutId);
 
-      const text = await response.text();
+      const text =
+        await response.text();
 
       let data = null;
 
       try {
-        data = JSON.parse(text);
+
+        data =
+          JSON.parse(text);
+
       } catch {
 
-        console.error("Resposta inválida:", text);
+        console.error(
+          "[INVALID JSON]",
+          text
+        );
 
         throw new APIError(
-          "Backend retornou resposta inválida",
+          "Backend retornou JSON inválido",
           "INVALID_JSON",
           text
         );
@@ -80,8 +118,12 @@ class APIClient {
       if (!response.ok) {
 
         throw new APIError(
-          data?.message || `Erro ${response.status}`,
+
+          data?.message ||
+          `Erro ${response.status}`,
+
           response.status,
+
           data
         );
       }
@@ -92,17 +134,27 @@ class APIClient {
 
       clearTimeout(timeoutId);
 
-      if (error instanceof APIError) {
+      if (
+        error instanceof APIError
+      ) {
+
         throw error;
       }
 
-      if (error.name === "AbortError") {
+      if (
+        error.name === "AbortError"
+      ) {
 
         throw new APIError(
           "Tempo de resposta excedido",
           "TIMEOUT"
         );
       }
+
+      console.error(
+        "[NETWORK ERROR]",
+        error
+      );
 
       throw new APIError(
         "Falha de conexão com servidor",
@@ -113,59 +165,98 @@ class APIClient {
   }
 }
 
-export const apiClient = new APIClient();
+export const apiClient =
+  new APIClient();
 
-export async function sendQuestion(question) {
+export async function sendQuestion(
+  question
+) {
 
-  const response = await apiClient.analyzeQuestion(question);
+  const response =
+    await apiClient.analyzeQuestion(
+      question
+    );
 
-  return normalizeResponse(response);
+  console.log(
+    "[RAW API RESPONSE]",
+    response
+  );
+
+  return normalizeResponse(
+    response
+  );
 }
 
 function normalizeResponse(data) {
 
-  let answer = data.answer;
+  let answer =
+    data?.answer || {};
 
-  if (typeof answer === "string") {
+  //
+  // Compatibilidade:
+  // answer pode vir string ou objeto
+  //
+  if (
+    typeof answer === "string"
+  ) {
 
     try {
-      answer = JSON.parse(answer);
+
+      answer =
+        JSON.parse(answer);
+
     } catch {
+
       answer = {
-        text: answer
+        resumo: answer
       };
     }
   }
 
+  console.log(
+    "[NORMALIZED ANSWER]",
+    answer
+  );
+
   return {
-    success: data.success !== false,
 
-    question: data.question || "",
+    success:
+      data?.success !== false,
 
+    question:
+      data?.question || "",
+
+    //
+    // PADRÃO NOVO DO BACKEND
+    //
     summary:
-      answer?.summary ||
-      answer?.text ||
+      answer?.resumo ||
       "Sem resposta disponível",
 
     analysis:
-      answer?.analysis ||
-      answer?.details ||
-      "",
+      answer?.analise || "",
 
     confidence:
-      answer?.confidence ||
-      answer?.confiabilidade ||
-      0,
+      answer?.confiabilidade || null,
 
     evidence:
-      Array.isArray(answer?.evidence)
-        ? answer.evidence
+      Array.isArray(
+        answer?.evidencias
+      )
+        ? answer.evidencias
         : [],
 
     sources:
-      Array.isArray(answer?.sources)
-        ? answer.sources
+      Array.isArray(
+        answer?.fontes_utilizadas
+      )
+        ? answer.fontes_utilizadas
         : [],
+
+    //
+    // resposta completa
+    //
+    answer,
 
     raw: data
   };
