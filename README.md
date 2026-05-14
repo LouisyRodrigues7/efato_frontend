@@ -2,54 +2,6 @@
 
 Frontend moderno e responsivo para a plataforma **ÉFato**: IA que testa o que você confia.
 
-## 📋 Características
-
-- ✅ Interface conversacional moderna (estilo ChatGPT/Claude)
-- ✅ Tema claro e escuro com persistência
-- ✅ Arquitetura modular e escalável
-- ✅ 100% JavaScript Vanilla (sem frameworks)
-- ✅ Responsivo (desktop, tablet, mobile)
-- ✅ Histórico de chats com localStorage
-- ✅ Renderização de markdown
-- ✅ Integração com backend Node.js/Express
-- ✅ Animações suaves e UX profissional
-
-## 🚀 Início Rápido
-
-### Requisitos
-
-- Node.js 14+ (opcional, para servir localmente)
-- Navegador moderno (Chrome, Firefox, Safari, Edge)
-
-### Instalação
-
-1. **Clone ou copie o projeto:**
-
-```bash
-cd efato/frontend
-```
-
-2. **Inicie um servidor local** (escolha uma opção):
-
-**Opção 1: Com Python 3**
-```bash
-python3 -m http.server 8000
-```
-
-**Opção 2: Com Node.js (http-server)**
-```bash
-npx http-server
-```
-
-**Opção 3: Com Live Server (VS Code)**
-- Instale a extensão "Live Server"
-- Clique com botão direito em `index.html` e selecione "Open with Live Server"
-
-3. **Acesse no navegador:**
-
-```
-http://localhost:8000
-```
 
 ## 📁 Estrutura do Projeto
 
@@ -89,12 +41,6 @@ frontend/
 │   ├── input.html            # Componente input
 │   ├── loader.html           # Componente loader
 │   └── modal.html            # Componente modal
-│
-└── assets/                    # Recursos
-    ├── icons/                # Ícones
-    ├── images/               # Imagens
-    └── fonts/                # Fontes personalizadas
-```
 
 ## 🔧 Configuração
 
@@ -114,23 +60,6 @@ Ou use a função:
 import { setAPIEndpoint } from './js/api.js';
 setAPIEndpoint('http://seu-servidor:porta/api/analyze');
 ```
-
-### Temas
-
-O tema é salvo automaticamente no localStorage. Para forçar um tema:
-
-```javascript
-import { applyTheme } from './js/theme.js';
-applyTheme('dark');  // ou 'light'
-```
-
-## 📱 Responsividade
-
-O frontend é totalmente responsivo:
-
-- **Desktop** (1024px+): Layout completo com sidebar
-- **Tablet** (768px - 1023px): Sidebar colapsável
-- **Mobile** (< 768px): Sidebar em overlay, layout otimizado
 
 ## 🎨 Paleta de Cores
 
