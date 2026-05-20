@@ -202,16 +202,55 @@ function addAssistantMessage(response, appState) {
     "";
 
   const fontes =
-    parsedAnswer?.fontes_utilizadas ||
-    [];
+    Array.isArray(
+      parsedAnswer?.fontes_utilizadas
+    )
+      ? parsedAnswer.fontes_utilizadas
+      : [];
 
   const evidencias =
-    parsedAnswer?.evidencias ||
-    [];
+    Array.isArray(
+      parsedAnswer?.evidencias
+    )
+      ? parsedAnswer.evidencias
+      : [];
 
   const confiabilidade =
     parsedAnswer?.confiabilidade ||
     null;
+
+  //
+  // MELHORIAS:
+  // evita HTML quebrado
+  //
+  const escapeHtml = (text = "") => {
+
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  //
+  // MELHORIA:
+  // remove fontes duplicadas
+  //
+  const uniqueSources =
+    fontes.filter((fonte, index, self) => {
+
+      const current =
+        fonte?.fonte || fonte?.titulo;
+
+      return index === self.findIndex(item => {
+
+        const compare =
+          item?.fonte || item?.titulo;
+
+        return compare === current;
+      });
+    });
 
   //
   // TEMPLATE
@@ -219,7 +258,7 @@ function addAssistantMessage(response, appState) {
   let content = `
 ## Resumo
 
-${resumo}
+${escapeHtml(resumo)}
 `;
 
   if (analise) {
@@ -228,12 +267,11 @@ ${resumo}
 
 ## Análise
 
-${analise}
+${escapeHtml(analise)}
 `;
   }
 
   if (
-    evidencias &&
     evidencias.length > 0
   ) {
 
@@ -248,16 +286,19 @@ ${analise}
 
         content += `
 
-• ${item?.trecho || ""}
+• ${escapeHtml(
+          item?.trecho || ""
+        )}
 
-Fonte: ${item?.fonte || ""}
+Fonte: ${escapeHtml(
+          item?.fonte || ""
+        )}
 `;
       });
   }
 
   if (
-    fontes &&
-    fontes.length > 0
+    uniqueSources.length > 0
   ) {
 
     content += `
@@ -265,14 +306,22 @@ Fonte: ${item?.fonte || ""}
 ## Fontes utilizadas
 `;
 
-    fontes
+    uniqueSources
       .slice(0, 5)
       .forEach((fonte) => {
 
+        const url =
+          fonte?.fonte || "#";
+
+        const titulo =
+          fonte?.titulo ||
+          fonte?.fonte ||
+          "Fonte";
+
         content += `
 
-• <a href="${fonte?.fonte || "#"}" target="_blank" rel="noopener noreferrer">
-${fonte?.titulo || fonte?.fonte || "Fonte"}
+• <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+${escapeHtml(titulo)}
 </a>
 `;
       });
@@ -284,11 +333,24 @@ ${fonte?.titulo || fonte?.fonte || "Fonte"}
 
 ## Confiabilidade
 
-Nível: ${confiabilidade?.nivel || "não informado"}
+Nível: ${escapeHtml(
+      confiabilidade?.nivel || "não informado"
+    )}
 
-${confiabilidade?.motivo || ""}
+${escapeHtml(
+      confiabilidade?.motivo || ""
+    )}
 `;
   }
+
+  //
+  // MELHORIA:
+  // debug da resposta final
+  //
+  console.log(
+    "[FINAL CONTENT]",
+    content
+  );
 
   const message = {
 
@@ -330,17 +392,24 @@ function renderMessage(content, role) {
   div.className =
     `message ${role}`;
 
+  //
+  // MELHORIA:
+  // evita render null/undefined
+  //
+  const safeContent =
+    content || "";
+
   if (role === "assistant") {
 
     div.innerHTML = `
       <div class="markdown-content">
-        ${renderMarkdown(content)}
+        ${renderMarkdown(safeContent)}
       </div>
     `;
 
   } else {
 
-    div.textContent = content;
+    div.textContent = safeContent;
   }
 
   container.appendChild(div);
@@ -376,6 +445,11 @@ function showLoading() {
     );
 
   if (!container) return;
+
+  //
+  // evita múltiplos loadings
+  //
+  removeLoading();
 
   const loading =
     document.createElement("div");
